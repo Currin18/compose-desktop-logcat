@@ -1,25 +1,33 @@
 import androidx.compose.desktop.Window
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import core.ADB
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import model.Application
 import model.Device
+import model.Log
 import model.Mode
 import view.FiltersMenu
+import view.MainContent
+import view.padding
 
 fun main() = Window {
     var deviceList by remember { mutableStateOf(listOf<Device>()) }
@@ -28,7 +36,7 @@ fun main() = Window {
     var applicationFilter: Application? by remember { mutableStateOf(Application()) }
     var modeFilter by remember { mutableStateOf(Mode.NO_FILTERS) }
 
-    var logs by remember { mutableStateOf(listOf<String>()) }
+    var logs by remember { mutableStateOf(listOf<Log>()) }
 
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -45,7 +53,7 @@ fun main() = Window {
                         GlobalScope.launch(Dispatchers.IO) {
                             startLogCat(device.serial) { line ->
 //                                println(line)
-                                logs = logs.toMutableList() + line
+                                logs = logs.toMutableList() + Log(line)
                             }
                         }
                     }
@@ -54,15 +62,13 @@ fun main() = Window {
                 onModeFilterChanged = { modeFilter = it }
             )
 
-            Text("Device: ${deviceFilter?.publicName ?: ""} ${deviceFilter?.extraInfo ?: ""}")
-            Text("Application: ${applicationFilter?.packageName ?: ""}")
-            Text("Mode: ${modeFilter.value}")
-
-            LazyColumn() {
-                items(logs) { log ->
-                    Text(log)
-                }
+            Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.Gray).padding(padding, padding * 2)) {
+                Text("Device: ${deviceFilter?.publicName ?: ""} ${deviceFilter?.extraInfo ?: ""}")
+                Text("Application: ${applicationFilter?.packageName ?: ""}")
+                Text("Mode: ${modeFilter.value}")
             }
+
+            MainContent(logs)
         }
     }
 

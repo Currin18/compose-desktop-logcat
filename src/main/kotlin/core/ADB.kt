@@ -63,8 +63,10 @@ object ADB {
                 println("Here is the standard output of the command:\n")
             while (stdInput.readLine().also { s = it } != null) {
                 s?.let {
-                    stringList.add(it)
-                    callback(it)
+                    if (it != "--------- beginning of system") {
+                        stringList.add(it)
+                        callback(it)
+                    }
                     if (debugMode)
                         println(it)
                 }
