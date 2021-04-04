@@ -1,5 +1,7 @@
 package model
 
+import androidx.compose.ui.graphics.Color
+import style.*
 import java.util.*
 
 class Log(
@@ -7,40 +9,41 @@ class Log(
     var pid: Int = 0,
     var tid: Int = 0,
     var packageName: String = "?",
-    var level: LogLevel = LogLevel.Assert,
+    var level: LogLevel = LogLevel.Verbose,
     var tag: String = "?",
     var message: String = ""
 ) {
     private val pattern = Regex("(\\d\\d-\\d\\d)\\s+(\\d\\d:\\d\\d:\\d\\d.\\d\\d\\d)\\s+(\\d+)\\s+(\\d+)\\s+([a-zA-Z])\\s+([^\\s.]+)(\\s+)?:\\s+(.*)")
 
-    constructor(stringLog: String) : this() {
+    constructor(stringLog: String, packageList: List<Application> = listOf()) : this() {
         val matchResult = pattern.find(stringLog)
 
-        matchResult?.let {
-            val match = it.groupValues
+        matchResult?.let { result ->
+            val match = result.groupValues
 
+            date = "2021-${match[1]} ${match[2]}"
+            pid = match[3].toInt()
+            tid = match[4].toInt()
+            level = LogLevel.fromValue(match[5])
+            tag = match[6]
+            message = match[8]
 
-                date = "2021-${match[1]} ${match[2]}"
-                pid = match[3].toInt()
-                tid = match[4].toInt()
-                level = LogLevel.fromValue(match[5])
-                tag = match[5]
-                message = match[8]
+            packageName = packageList.find { it.uid == pid.toString() }?.packageName ?: "?"
+
             if (message.isBlank()) {
-
                 println(stringLog)
-                println(matchResult.groupValues)
-
-                /*println("""
-                    time: ${match[1]} ${match[2]}
-                    pid: ${match[3]}
-                    tid: ${match[4]}
-                    level: ${match[5]}
-                    tag: ${match[6]}
-                    message: ${match[8]}
-                """)*/
+                println(result.groupValues)
             }
         }
+    }
+
+    fun getLogColor(): Color = when(level) {
+        LogLevel.Debug -> LogDebug
+        LogLevel.Info -> LogInfo
+        LogLevel.Warning -> LogWarning
+        LogLevel.Error -> LogError
+        LogLevel.Assert -> LogAssert
+        else -> Color.Unspecified
     }
 
     fun print() {
@@ -55,11 +58,12 @@ class Log(
     }
 
     enum class LogLevel(val value: String) {
-        Assert("A"),
+        Verbose("V"),
         Debug("D"),
         Info("I"),
         Warning("W"),
-        Error("E");
+        Error("E"),
+        Assert("A");
 
         companion object {
             fun fromValue(stringValue: String): LogLevel = when(stringValue) {
@@ -67,7 +71,8 @@ class Log(
                 "I" -> Info
                 "W" -> Warning
                 "E" -> Error
-                else -> Assert
+                "A" -> Assert
+                else -> Verbose
             }
         }
     }

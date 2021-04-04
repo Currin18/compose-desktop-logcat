@@ -52,8 +52,11 @@ fun main() = Window {
 
                         GlobalScope.launch(Dispatchers.IO) {
                             startLogCat(device.serial) { line ->
-//                                println(line)
-                                logs = logs.toMutableList() + Log(line)
+                                println(line)
+                                Log(line, applicationList).let {
+                                    if (it.message.isNotBlank())
+                                        logs = logs.toMutableList() + it
+                                }
                             }
                         }
                     }
@@ -88,7 +91,29 @@ fun loadDevices(): List<Device> {
 }
 
 fun loadApplications(serial: String): List<Application> {
-    return ADB.getDebuggableApplications(serial).map { Application(it.key) }
+    return ADB.getDebuggableApplications(serial).map { app ->
+        var uid = ""
+        var gid = ""
+        var groups = ""
+        var context = ""
+        app.value.forEach {
+            when {
+                it.contains("uid=") -> {
+                    uid = it.replace(Regex("uid=|\\(*\\)"), "")
+                }
+                it.contains("gid=") -> {
+                    gid = it.replace(Regex("gid=|\\(*\\)"), "")
+                }
+                it.contains("groups=") -> {
+                    groups = it.replace(Regex("groups="), "")
+                }
+                it.contains("context=") -> {
+                    context = it.replace(Regex("context="), "")
+                }
+            }
+        }
+        Application(app.key, uid, gid, groups, context)
+    }
 }
 
 fun startLogCat(serial: String, callback: (String) -> Unit) {
