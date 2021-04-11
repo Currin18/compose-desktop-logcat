@@ -40,6 +40,12 @@ fun main() = Window {
 
     MaterialTheme {
         Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.Gray).padding(padding, padding * 2)) {
+                Text("Device: ${deviceFilter?.publicName ?: ""} ${deviceFilter?.extraInfo ?: ""}")
+                Text("Application: ${applicationFilter?.packageName ?: ""}")
+                Text("Mode: ${modeFilter.value}")
+            }
+
             FiltersMenu(
                 devices = deviceList,
                 applications = applicationList,
@@ -52,7 +58,7 @@ fun main() = Window {
 
                         GlobalScope.launch(Dispatchers.IO) {
                             startLogCat(device.serial) { line ->
-                                println(line)
+//                                println(line)
                                 Log(line, applicationList).let {
                                     if (it.message.isNotBlank())
                                         logs = logs.toMutableList() + it
@@ -65,13 +71,7 @@ fun main() = Window {
                 onModeFilterChanged = { modeFilter = it }
             )
 
-            Column(modifier = Modifier.fillMaxWidth().border(1.dp, Color.Gray).padding(padding, padding * 2)) {
-                Text("Device: ${deviceFilter?.publicName ?: ""} ${deviceFilter?.extraInfo ?: ""}")
-                Text("Application: ${applicationFilter?.packageName ?: ""}")
-                Text("Mode: ${modeFilter.value}")
-            }
-
-            MainContent(logs)
+            MainContent(logs, onClearLogs = { logs = listOf() })
         }
     }
 
