@@ -1,5 +1,6 @@
 package view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorXmlResource
 import androidx.compose.ui.unit.dp
 import model.Log
 
@@ -24,17 +26,22 @@ fun MainContent(logs: List<Log>, onClearLogs: () -> Unit = {}) {
     val scrollToEndState: MutableState<Boolean?> = remember { mutableStateOf(null) }
     if (logs.isNotEmpty() && scrollToEndState.value == null) scrollToEndState.value = true
 
+    val wrappedState = remember { mutableStateOf(false) }
+
     Row (
         modifier = Modifier.fillMaxWidth().border(1.dp, Color.Gray)
     ) {
         LogMenu(
+            scrollToEndState = scrollToEndState.value,
+            wrappedState = wrappedState.value,
             onClearLogs = {
                 scrollToEndState.value = null
                 onClearLogs()
             },
             onScrollToEndClicked = { scrollToEndState.value = true },
+            onWrappedClicked = { wrappedState.value = !wrappedState.value}
         )
-        LogList(logs, scrollToEndState.value, onItemSelected = {
+        LogList(logs, scrollToEndState.value, wrappedState.value, onItemSelected = {
             scrollToEndState.value = false
         })
     }
@@ -42,8 +49,11 @@ fun MainContent(logs: List<Log>, onClearLogs: () -> Unit = {}) {
 
 @Composable
 fun LogMenu(
+    scrollToEndState: Boolean? = false,
+    wrappedState: Boolean = false,
     onClearLogs: () -> Unit = {},
     onScrollToEndClicked: () -> Unit = {},
+    onWrappedClicked: () -> Unit = {},
 ) {
 
     Column(
@@ -58,9 +68,22 @@ fun LogMenu(
 
         Spacer(Modifier.fillMaxWidth().height(17.dp).padding(0.dp, 8.dp).background(Color.Gray))
 
-        ActionIcon(Icons.Filled.ArrowBack, "Scroll to end", modifier = Modifier.rotate(-90f),
+        ActionIcon(
+            resource = when(scrollToEndState) {
+                true -> "icons/sort.xml"
+                else -> "icons/sort_ascending.xml"
+            },
+            contentDescription = "Scroll to end",
+            //modifier = Modifier.rotate(-90f),
             isSpacerNeeded = false, onClick = { onScrollToEndClicked() })
-        ActionIcon(Icons.Filled.List, "Wrap content", onClick = {})
+        ActionIcon(
+            resource = when(wrappedState) {
+                true -> "icons/wrap.xml"
+                else -> "icons/wrap_disabled.xml"
+            },
+            contentDescription = "Wrap content",
+            onClick = { onWrappedClicked() }
+        )
 
         Spacer(Modifier.fillMaxWidth().height(17.dp).padding(0.dp, 8.dp).background(Color.Gray))
 
@@ -72,9 +95,39 @@ fun LogMenu(
 fun ActionIcon(
     icon: ImageVector,
     contentDescription: String = "",
+    modifier: Modifier = Modifier.fillMaxSize(),
+    isSpacerNeeded: Boolean = true,
+    onClick: () -> Unit = {}
+) {
+    ActionIconBase(
+        isSpacerNeeded = isSpacerNeeded,
+        onClick = onClick
+    ) { Icon(icon, contentDescription, modifier) }
+}
+
+@Composable
+fun ActionIcon(
+    resource: String,
+    contentDescription: String = "",
     modifier: Modifier = Modifier,
     isSpacerNeeded: Boolean = true,
     onClick: () -> Unit = {}
+) {
+    ActionIconBase(
+        isSpacerNeeded = isSpacerNeeded,
+        onClick = onClick
+    ) { Image(
+        imageVector = vectorXmlResource(resource),
+        contentDescription = contentDescription,
+        modifier = modifier
+    ) }
+}
+
+@Composable
+fun ActionIconBase(
+    isSpacerNeeded: Boolean = true,
+    onClick: () -> Unit = {},
+    child: @Composable () -> Unit = {}
 ) {
     val spacerSize = 8.dp
 
@@ -82,6 +135,6 @@ fun ActionIcon(
     IconButton(
         modifier = Modifier.then(Modifier.size(24.dp)),
         onClick = { onClick() }
-    ) { Icon(icon, contentDescription, modifier) }
+    ) { child() }
 }
 

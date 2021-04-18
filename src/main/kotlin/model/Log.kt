@@ -37,6 +37,10 @@ class Log(
         }
     }
 
+    fun getFormattedLog(): String {
+        return "$date $pid-$tid/$packageName ${level.value}/$tag: $message"
+    }
+
     fun getLogColor(): Color = when(level) {
         LogLevel.Debug -> LogDebug
         LogLevel.Info -> LogInfo

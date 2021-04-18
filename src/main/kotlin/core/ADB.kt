@@ -1,12 +1,13 @@
 package core
 
+import model.Constants.resourcesFolder
 import java.io.IOException
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
 object ADB {
-    private const val binaryPath = "./src/main/resources/platform-tools/adb"
+    private const val binaryPath = "$resourcesFolder/platform-tools/adb"
 
     fun getDevices(): List<String> {
         val devices: MutableList<String> = mutableListOf()
