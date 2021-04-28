@@ -122,7 +122,7 @@ fun logsToCopy(logs: List<Log>, fromIndex: Int?, toIndex: Int?): String {
 @Composable
 fun LogRow(index: Int, log: Log, wrapped: Boolean = false, selected: Boolean, onClick: (Int) -> Unit = {}) {
     log.apply {
-        if (pid == 10441 || tid == 10441) { println("$date $pid-$tid/$packageName ${level.value}/$tag: $message") }
+        //if (pid == 10441 || tid == 10441) { println("$date $pid-$tid/$packageName ${level.value}/$tag: $message") }
 
         val color: Color = when(selected) {
             true -> Color.Gray
